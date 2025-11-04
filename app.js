@@ -12,6 +12,7 @@ app.use(express.json());
 const uri = "mongodb+srv://td499_db_user:Vanshika1111@coursework.achdmcb.mongodb.net/";
 let db;
 let lessonCollection;
+let userCollection;
 
 //connect to mongodb
 async function connectToDatabase(){
@@ -23,8 +24,10 @@ async function connectToDatabase(){
 
         db=client.db("LessonDatabase");
         lessonCollection=db.collection("lessonData");
+        userCollection=db.collection("userData");
     } catch(err){
         console.error("error connecting to Mongodb",err);
+        process.exit(1); //stop server if the database connection has failed
     }
 }
 
@@ -34,4 +37,30 @@ connectToDatabase();
 
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`);
+});
+
+//user signup route
+app.post("/signup",async(req,res)=>{
+    try{
+        //extract data
+        const {name,email,password} = req.body;
+
+        //check if they are empty
+        if(!name || !email || !password){
+            return res.json({
+                success:false,
+                message: "All fields are required"
+            });
+        }
+
+        //check if the password has minimum 6 characters
+        if(password.length < 6){
+            return res.json({
+                success:false,
+                message:"Password length must be atleast 6 characters long"
+            });
+        }
+
+        //check if email already exists
+    }
 });

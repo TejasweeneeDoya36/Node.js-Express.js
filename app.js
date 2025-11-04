@@ -1,6 +1,7 @@
 //import core dependencies
 const express = require('express'); //framework to build APIs
 const {MongoClient,ObjectId} = require('mongodb'); //database
+const { use } = require('react');
 //initalise the app
 const app= express();
 const PORT=3000;
@@ -62,5 +63,35 @@ app.post("/signup",async(req,res)=>{
         }
 
         //check if email already exists
+        const existingUser = await userCollection.findOne({email:email.toLowerCase()});
+        if(existingUser){
+            return res.json({
+                success:false,
+                message:"User with this email already exists"
+            });
+        }
+
+        //create a new user
+        const newUser ={
+            name: name.trim(),
+            email:email.toLowerCase().trim(),
+            password:password,
+        };
+
+        //insert user in database
+        const result = await userCollection.insertOne(newUser);
+
+        //return success message
+        res.json({
+            success:true,
+            message:"User created successfully",
+            user:{
+                id: result.insertedId,
+                name: newUser.name,
+                email: newUser.email
+            }
+        })
+    }catch(error){
+        console.error("Signup error:",error);
     }
 });

@@ -2,6 +2,7 @@
 const express = require('express'); //framework to build APIs
 const {MongoClient,ObjectId} = require('mongodb'); //database
 const { use } = require('react');
+const path = require('path');
 //initalise the app
 const app= express();
 const PORT=3000;
@@ -35,11 +36,6 @@ async function connectToDatabase(){
 //call database connection function
 connectToDatabase();
 
-
-app.listen(PORT,()=>{
-    console.log(`Server is running on port ${PORT}`);
-});
-
 //user signup route
 app.post("/signup",async(req,res)=>{
     try{
@@ -48,7 +44,7 @@ app.post("/signup",async(req,res)=>{
 
         //check if they are empty
         if(!name || !email || !password){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message: "All fields are required"
             });
@@ -56,7 +52,7 @@ app.post("/signup",async(req,res)=>{
 
         //check if the password has minimum 6 characters
         if(password.length < 6){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"Password length must be atleast 6 characters long"
             });
@@ -65,7 +61,7 @@ app.post("/signup",async(req,res)=>{
         //check if email already exists
         const existingUser = await userCollection.findOne({email:email.toLowerCase()});
         if(existingUser){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"User with this email already exists"
             });
@@ -82,7 +78,7 @@ app.post("/signup",async(req,res)=>{
         const result = await userCollection.insertOne(newUser);
 
         //return success message
-        res.json({
+        res.status(200).json({
             success:true,
             message:"User created successfully",
             user:{
@@ -94,4 +90,62 @@ app.post("/signup",async(req,res)=>{
     }catch(error){
         console.error("Signup error:",error);
     }
+});
+
+//user login route
+app.post("/api/login", async(req,res)=>{
+    try{
+        const {email,password} = req.body;
+
+        //if empty
+        if (!email || !password){
+            return res.status(400).json({
+                success:false,
+                message:"Email and password are required"
+            });
+        }
+
+        //find user by email
+        const user = await userCollection.findOne({email:email.toLowerCase()});
+
+        //invalid credentials
+        if(!user || user.password !== password){
+            return res.status(401).json({
+                success:false,
+                message:"Invalid email or password"
+            });
+        }
+
+        //update user last login timestamp
+        await userCollection.updateOne(
+            {_id:user._id},
+            {$set:{lastLogin: new Date()}}
+        );
+
+        //send success message
+        res.status(200).json({
+            success:true,
+            message:"Login successful",
+            user:{
+                id:user._id,
+                name: user.name,
+                email:user.email
+            }
+        });
+    }catch(error){
+        console.error("Login error:",error);
+        res.status(500).json({
+                success:false,
+                message:"Internal server error"
+        });
+    }
+});
+
+//serve login page as default 
+app.get("/",(req,res)=>{
+    res.sendFile(path.join(__dirname,"../Vue.js/loginHTML.html"));
+});
+
+app.listen(PORT,()=>{
+    console.log(`Server is running on port ${PORT}`);
 });

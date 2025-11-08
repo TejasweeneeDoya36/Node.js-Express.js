@@ -3,6 +3,8 @@ const express = require('express'); //framework to build APIs
 const {MongoClient,ObjectId} = require('mongodb'); //database
 const { use } = require('react');
 const path = require('path');
+const { count } = require('console');
+const { subscribe } = require('diagnostics_channel');
 //initalise the app
 const app= express();
 const PORT=3000;
@@ -137,6 +139,81 @@ app.post("/api/login", async(req,res)=>{
         res.status(500).json({
                 success:false,
                 message:"Internal server error"
+        });
+    }
+});
+
+//fetch total number of registered users
+app.get("/api/user-count", async(req,res)=>{
+    try{
+        //count all users in the collection
+        const count = await userCollection.countDocuments();
+
+        res.status(200).json({
+            success: true,
+            count:count
+        });
+    } catch(error){
+        console.error("Error fetching user count:",error);
+
+        res.status(500).json({
+            success:false,
+            count:0
+        });
+    }
+});
+
+//fetch all lessons
+app.get("/api/lessons", async(req,res)=>{
+    try{
+        const lessons = await lessonCollection.find({}).toArray();
+        res.status(200).json({
+            success:true,
+            lessons:lessons
+        });
+    }catch(error){
+        console.error("Error fetching lessons",error);
+        res.status(400).json({
+            success:false,
+            message:"Failed to lessons"
+        });
+    }
+});
+
+//search lessons
+app.get("/api/search", async(req,res) =>{
+    try{
+        const query = req.query.q? req.query.q.trim().toLowerCase(): "";
+
+        if(!query){
+            // if no query is provided,return all lessons
+            const allLessons = await lessonCollection.find({}).toArray();
+
+            return res.json({
+                success:true,
+                lessons:allLessons
+            });
+        }
+
+        //text-like search across multiple fields
+        const filteredLessons = lessonCollection.find({
+            $or:[
+                {subject:{$regex:query, $options: 'i'}},
+                {location:{$regex:query, $options: 'i'}},
+                {price:{$regex:query, $options: 'i'}},
+                {spaces:{$regex:query, $options: 'i'}},
+            ]
+        }).toArray();
+
+        res.json({
+            success:true,
+            lessons:filteredLessons
+        })
+    } catch(error){
+        console.error("error during search:",error);
+        res.json({
+            success:false,
+            message: "Search failed"
         });
     }
 });

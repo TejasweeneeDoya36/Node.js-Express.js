@@ -2,12 +2,14 @@
 const express = require('express'); //framework to build APIs
 const {MongoClient,ObjectId} = require('mongodb'); //database
 const path = require('path');
+const cors = require('cors');
 //initalise the app
 const app= express();
 const PORT=3000;
 
 //middleware
 app.use(express.json());
+app.use(cors());
 
 //Database connection
 const uri = "mongodb+srv://td499_db_user:Vanshika1111@coursework.achdmcb.mongodb.net/";
@@ -39,10 +41,10 @@ connectToDatabase();
 app.post("/signup",async(req,res)=>{
     try{
         //extract data
-        const {name,email,password} = req.body;
+        const {name,email,password,confirmPassword} = req.body;
 
         //check if they are empty
-        if(!name || !email || !password){
+        if(!name || !email || !password || !confirmPassword){
             return res.status(400).json({
                 success:false,
                 message: "All fields are required"
@@ -88,6 +90,10 @@ app.post("/signup",async(req,res)=>{
         })
     }catch(error){
         console.error("Signup error:",error);
+        res.status(500).json({
+            success:false,
+            message:"Internal server error"
+        });
     }
 });
 

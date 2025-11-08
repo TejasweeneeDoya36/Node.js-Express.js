@@ -1,10 +1,7 @@
 //import core dependencies
 const express = require('express'); //framework to build APIs
 const {MongoClient,ObjectId} = require('mongodb'); //database
-const { use } = require('react');
 const path = require('path');
-const { count } = require('console');
-const { subscribe } = require('diagnostics_channel');
 //initalise the app
 const app= express();
 const PORT=3000;

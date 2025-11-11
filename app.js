@@ -9,7 +9,10 @@ const PORT=3000;
 
 //middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin:"http://localhost:3000",
+    credentials:true
+}));
 
 //Database connection
 const uri = "mongodb+srv://td499_db_user:Vanshika1111@coursework.achdmcb.mongodb.net/";
@@ -38,7 +41,7 @@ async function connectToDatabase(){
 connectToDatabase();
 
 //user signup route
-app.post("/signup",async(req,res)=>{
+app.post("/api/signup",async(req,res)=>{
     try{
         //extract data
         const {name,email,password,confirmPassword} = req.body;
@@ -49,6 +52,13 @@ app.post("/signup",async(req,res)=>{
                 success:false,
                 message: "All fields are required"
             });
+        }
+        //check if passwords match
+        if (password !== confirmPassword){
+            return res.status(400).json({
+                success:false,
+                message: "Passwords do not match"
+            })
         }
 
         //check if the password has minimum 6 characters

@@ -269,7 +269,44 @@ app.post("/api/orders", async(req,res) =>{
     }
 });
 // put route to update any attribute on lesson 
+app.put("/api/lessons/:id", async(req,res)=>{
+    try{
+        const lessonId = req.params.id;
+        const updates= req.body; //attributes to update
+        
+        if(!ObjectId.isValid(lessonId)){
+            return res.json({
+                success:false,
+                message:"Invalid lesson ID"
+            });
+        }
 
+        const result = await lessonCollection.updateOne(
+            {_id: new ObjectId(lessonId)},
+            {$set: updates}
+        );
+
+        if(result.modifiedCount === 0){
+            return res.json({
+                success:false,
+                message:"Lesson not found or no changes made"
+            });
+        }
+
+        res.json({
+            success:true,
+            message:"Lesson updated successfully",
+            updatedFields: updates
+        });
+
+    }catch(error){
+        console.error("Error updating lesson:",error);
+        res.json({
+            success:false,
+            message:"Failed to update lesson"
+        });
+    }
+});
 //serve login page as default 
 app.get("/",(req,res)=>{
     res.sendFile(path.join(__dirname,"../Vue.js/loginHTML.html"));

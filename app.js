@@ -16,6 +16,7 @@ const uri = "mongodb+srv://td499_db_user:Vanshika1111@coursework.achdmcb.mongodb
 let db;
 let lessonCollection;
 let userCollection;
+let orderCollection;
 
 //connect to mongodb
 async function connectToDatabase(){
@@ -28,6 +29,7 @@ async function connectToDatabase(){
         db=client.db("LessonDatabase");
         lessonCollection=db.collection("LessonData");
         userCollection=db.collection("userData");
+        orderCollection = db.collection("orderData");
     } catch(err){
         console.error("error connecting to Mongodb",err);
         process.exit(1); //stop server if the database connection has failed
@@ -227,6 +229,46 @@ app.get("/api/search", async(req,res) =>{
         });
     }
 });
+// post route to save new order to order collection
+app.post("/api/orders", async(req,res) =>{
+    try{
+        const {name, phone, lessonIds, spaces, dateOfOrder, totalPrice} = req.body;
+
+        //check if empty
+        if(!name || !phone || !lessonIds || !spaces || !totalPrice){
+            return res.json({
+                success: false,
+                message: "Missing required order fields"
+            });
+        }
+
+        //construct new order document
+        const newOrder= {
+            name: name.trim(),
+            phone: phone.trim(),
+            lessonNames: lessonNames, //array of lessons name
+            spaces: spaces, //array of booked spaces
+            dateOfOrder: dateOfOrder || new Date().toISOString(),
+            totalPrice: totalPrice
+        }
+
+        //insert into database
+        const result = await orderCollection.insertOne(newOrder);
+
+        res.json({
+            success:true,
+            message: "Order created successfully",
+            orderId: result.insertedId
+        });
+    }catch(error){
+        console.error("Error creating order:",error);
+        res.json({
+            success:false,
+            message:"Failed to create order"
+        });
+    }
+});
+// put route to update any attribute on lesson 
 
 //serve login page as default 
 app.get("/",(req,res)=>{

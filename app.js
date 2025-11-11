@@ -9,10 +9,7 @@ const PORT=3000;
 
 //middleware
 app.use(express.json());
-app.use(cors({
-    origin:"http://localhost:3000",
-    credentials:true
-}));
+app.use(cors());
 
 //Database connection
 const uri = "mongodb+srv://td499_db_user:Vanshika1111@coursework.achdmcb.mongodb.net/";
@@ -25,11 +22,11 @@ async function connectToDatabase(){
     try{
         const client = new MongoClient(uri);
         await client.connect();
-        //output message to indicate if it has been conneted
+        //output message to indicate if it has been connected
         console.log("Connected to database");
 
         db=client.db("LessonDatabase");
-        lessonCollection=db.collection("lessonData");
+        lessonCollection=db.collection("LessonData");
         userCollection=db.collection("userData");
     } catch(err){
         console.error("error connecting to Mongodb",err);
@@ -209,7 +206,7 @@ app.get("/api/search", async(req,res) =>{
         }
 
         //text-like search across multiple fields
-        const filteredLessons = lessonCollection.find({
+        const filteredLessons = await lessonCollection.find({
             $or:[
                 {subject:{$regex:query, $options: 'i'}},
                 {location:{$regex:query, $options: 'i'}},

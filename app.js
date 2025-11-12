@@ -1,47 +1,49 @@
 //import core dependencies
 const express = require('express'); //framework to build APIs
 const {MongoClient,ObjectId} = require('mongodb'); //database
-const path = require('path');
-const cors = require('cors');
+const path = require('path'); //path utilities for file and directory paths
+const cors = require('cors'); // cross-origin resource sharing middleware
 //initalise the app
 const app= express();
-const PORT=3000;
+const PORT=3000; //server port number
 
-//logger middleware
+//logger middleware (logs request method, url, timestamp, and IP address)
 app.use((req,res,next)=>{
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] ${req.method} ${req.originalUrl} - IP: ${req.ip}`);
     next();
 });
 
-//static files middleware
+//static files middleware (serve images from lessonImages directory)
 app.use('/images',express.static(path.join(__dirname,'../Vue.js/lessonImages')));
 
+//404 handler for images
 app.use('/images',(req,res,next)=>{
     res.status(404).json({
         success:false,
         message:"Image not found"
     });
 });
-//middleware
+//middleware setup
 app.use(express.json());
 app.use(cors());
 
 //Database connection
 const uri = "mongodb+srv://td499_db_user:Vanshika1111@coursework.achdmcb.mongodb.net/";
 let db;
-let lessonCollection;
-let userCollection;
-let orderCollection;
+let lessonCollection; // collection for lesson data
+let userCollection; // collection for user data
+let orderCollection; // collection for order data
 
 //connect to mongodb
 async function connectToDatabase(){
     try{
         const client = new MongoClient(uri);
-        await client.connect();
+        await client.connect(); //connect to the database
         //output message to indicate if it has been connected
         console.log("Connected to database");
 
+        // initialize collections and database
         db=client.db("LessonDatabase");
         lessonCollection=db.collection("LessonData");
         userCollection=db.collection("userData");
@@ -55,7 +57,7 @@ async function connectToDatabase(){
 //call database connection function
 connectToDatabase();
 
-//user signup route
+//user signup route (handles new user registrations)
 app.post("/api/signup",async(req,res)=>{
     try{
         //extract data
@@ -113,7 +115,7 @@ app.post("/api/signup",async(req,res)=>{
                 email: newUser.email
             }
         })
-    }catch(error){
+    }catch(error){ //catch any errors
         console.error("Signup error:",error);
         res.status(500).json({
             success:false,
@@ -122,7 +124,7 @@ app.post("/api/signup",async(req,res)=>{
     }
 });
 
-//user login route
+//user login route (handles user authentication)
 app.post("/api/login", async(req,res)=>{
     try{
         const {email,password} = req.body;
@@ -162,7 +164,7 @@ app.post("/api/login", async(req,res)=>{
                 email:user.email
             }
         });
-    }catch(error){
+    }catch(error){ //catch any errors
         console.error("Login error:",error);
         res.status(500).json({
                 success:false,
@@ -181,7 +183,7 @@ app.get("/api/user-count", async(req,res)=>{
             success: true,
             count:count
         });
-    } catch(error){
+    } catch(error){ //catch any errors
         console.error("Error fetching user count:",error);
 
         res.status(500).json({
@@ -194,12 +196,13 @@ app.get("/api/user-count", async(req,res)=>{
 //fetch all lessons
 app.get("/api/lessons", async(req,res)=>{
     try{
+        //fetch all lessons from the collection and convert to array
         const lessons = await lessonCollection.find({}).toArray();
         res.status(200).json({
             success:true,
             lessons:lessons
         });
-    }catch(error){
+    }catch(error){ //catch any errors
         console.error("Error fetching lessons",error);
         res.status(400).json({
             success:false,
@@ -208,9 +211,10 @@ app.get("/api/lessons", async(req,res)=>{
     }
 });
 
-//search lessons
+//search lessons (enable text-like search across multiple fields)
 app.get("/api/search", async(req,res) =>{
     try{
+        //get search query from request and normalize it
         const query = req.query.q? req.query.q.trim().toLowerCase(): "";
 
         if(!query){
@@ -226,10 +230,10 @@ app.get("/api/search", async(req,res) =>{
         //text-like search across multiple fields
         const filteredLessons = await lessonCollection.find({
             $or:[
-                {subject:{$regex:query, $options: 'i'}},
-                {location:{$regex:query, $options: 'i'}},
-                {price:{$regex:query, $options: 'i'}},
-                {spaces:{$regex:query, $options: 'i'}},
+                {subject:{$regex:query, $options: 'i'}},// search subject field
+                {location:{$regex:query, $options: 'i'}}, // search location field
+                {price:{$regex:query, $options: 'i'}},// search price field
+                {spaces:{$regex:query, $options: 'i'}},// search spaces field
             ]
         }).toArray();
 
@@ -237,7 +241,7 @@ app.get("/api/search", async(req,res) =>{
             success:true,
             lessons:filteredLessons
         })
-    } catch(error){
+    } catch(error){ //catch any errors
         console.error("error during search:",error);
         res.json({
             success:false,
@@ -279,7 +283,7 @@ app.post("/api/orders", async(req,res) =>{
             message: "Order created successfully",
             orderId: result.insertedId
         });
-    }catch(error){
+    }catch(error){ //catch any errors
         console.error("Error creating order:",error);
         res.json({
             success:false,
@@ -290,8 +294,9 @@ app.post("/api/orders", async(req,res) =>{
 // put route to update any attribute on lesson 
 app.put("/api/update-spaces", async(req,res)=>{
     try{
-        const updates = req.body.updates; 
+        const updates = req.body.updates; // array of update objects
 
+        //check if empty
         if(!Array.isArray(updates) || updates.length === 0){
             return res.json({
                 success:false,
@@ -299,9 +304,11 @@ app.put("/api/update-spaces", async(req,res)=>{
             });
         }
 
+        //process each update in the array
         for(const update of updates){
             const {id, change} = update;
-
+            
+            //skip invalid updates
             if(!id || typeof change !== 'number') continue;
             
             //try to safely convert ID
@@ -324,7 +331,7 @@ app.put("/api/update-spaces", async(req,res)=>{
             message:"Spaces updated successfully"
         });
 
-    }catch(error){
+    }catch(error){//catch any errors
         console.error("Error updating spaces:",error);
         res.json({
             success:false,
@@ -336,7 +343,7 @@ app.put("/api/update-spaces", async(req,res)=>{
 app.get("/",(req,res)=>{
     res.sendFile(path.join(__dirname,"../Vue.js/loginHTML.html"));
 });
-
+//start the server and listen on specified port
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`);
 });

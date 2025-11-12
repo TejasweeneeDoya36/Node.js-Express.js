@@ -232,10 +232,10 @@ app.get("/api/search", async(req,res) =>{
 // post route to save new order to order collection
 app.post("/api/orders", async(req,res) =>{
     try{
-        const {name, phone, lessonIds, spaces, dateOfOrder, totalPrice} = req.body;
+        const {name, phone, lessons, dateOfOrder, totalPrice} = req.body;
 
         //check if empty
-        if(!name || !phone || !lessonIds || !spaces || !totalPrice){
+        if(!name || !phone|| !Array.isArray(lessons) || lessons.length === 0){
             return res.json({
                 success: false,
                 message: "Missing required order fields"
@@ -246,8 +246,11 @@ app.post("/api/orders", async(req,res) =>{
         const newOrder= {
             name: name.trim(),
             phone: phone.trim(),
-            lessonNames: lessonNames, //array of lessons name
-            spaces: spaces, //array of booked spaces
+            lessons: lessons.map(l => ({
+                id: l.id,
+                subject: l.subject,
+                quantity: l.quantity
+            })),
             dateOfOrder: dateOfOrder || new Date().toISOString(),
             totalPrice: totalPrice
         }
@@ -269,41 +272,47 @@ app.post("/api/orders", async(req,res) =>{
     }
 });
 // put route to update any attribute on lesson 
-app.put("/api/lessons/:id", async(req,res)=>{
+app.put("/api/update-spaces", async(req,res)=>{
     try{
-        const lessonId = req.params.id;
-        const updates= req.body; //attributes to update
-        
-        if(!ObjectId.isValid(lessonId)){
+        const updates = req.body.updates; 
+
+        if(!Array.isArray(updates) || updates.length === 0){
             return res.json({
                 success:false,
-                message:"Invalid lesson ID"
+                message:"No updates provided"
             });
         }
 
-        const result = await lessonCollection.updateOne(
-            {_id: new ObjectId(lessonId)},
-            {$set: updates}
-        );
+        for(const update of updates){
+            const {id, change} = update;
 
-        if(result.modifiedCount === 0){
-            return res.json({
-                success:false,
-                message:"Lesson not found or no changes made"
-            });
+            if(!id || typeof change !== 'number') continue;
+            
+            //try to safely convert ID
+            let objectId;
+            try{
+                objectId = new ObjectId(id);
+            }   catch(err){
+                console.warn("Invalid lesson ID:",id);
+                continue; //skip invalid IDs
+            }
+
+            await lessonCollection.updateOne(
+                {_id: objectId},
+                {$inc: {spaces: change}} //increment or decrement spaces
+            );
+
         }
-
         res.json({
             success:true,
-            message:"Lesson updated successfully",
-            updatedFields: updates
+            message:"Spaces updated successfully"
         });
 
     }catch(error){
-        console.error("Error updating lesson:",error);
+        console.error("Error updating spaces:",error);
         res.json({
             success:false,
-            message:"Failed to update lesson"
+            message:"Failed to update spaces"
         });
     }
 });

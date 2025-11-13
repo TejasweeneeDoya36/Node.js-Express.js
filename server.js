@@ -341,7 +341,7 @@ app.put("/api/update-spaces", async(req,res)=>{
 });
 //serve login page as default 
 app.get("/",(req,res)=>{
-    res.sendFile(path.join(__dirname,"../Vue.js/loginhtml.html"));
+    res.sendFile(path.join(__dirname,"../Vue.js/index.html"));
 });
 //start the server and listen on specified port
 app.listen(PORT,()=>{

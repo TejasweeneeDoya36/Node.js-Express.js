@@ -3,6 +3,7 @@ const express = require('express'); //framework to build APIs
 const {MongoClient,ObjectId} = require('mongodb'); //database
 const path = require('path'); //path utilities for file and directory paths
 const cors = require('cors'); // cross-origin resource sharing middleware
+const fs = require('fs'); //file system module
 //initalise the app
 const app= express();
 const PORT= process.env.PORT ||3000 ; //server port number

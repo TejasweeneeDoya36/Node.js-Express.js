@@ -17,13 +17,57 @@ app.use((req,res,next)=>{
 //middleware setup
 app.use(express.json());
 app.use(cors());
+console.log("current directory:",__dirname);
+// Try multiple possible paths for static files
+const possiblePaths = [
+    path.join(__dirname, '..', 'Frontend'), // If running from Node.js-Express.js folder
+    path.join(__dirname, 'Frontend'),       // If running from root
+    path.join(process.cwd(), 'Frontend')    // Current working directory
+];
+
+let frontendPath;
+let lessonImagesPath;
+
+// Find which path actually exists
+for (const possiblePath of possiblePaths) {
+    if (fs.existsSync(possiblePath)) {
+        frontendPath = possiblePath;
+        console.log('Found Frontend at:', frontendPath);
+        break;
+    }
+}
+
+// If no path found, use the most likely one
+if (!frontendPath) {
+    frontendPath = path.join(__dirname, '..', 'Frontend');
+    console.log('Using default Frontend path:', frontendPath);
+}
+
+// Similarly for lessonImages
+const possibleImagePaths = [
+    path.join(__dirname, '..', 'lessonImages'),
+    path.join(__dirname, 'lessonImages'),
+    path.join(process.cwd(), 'lessonImages')
+];
+
+for (const possiblePath of possibleImagePaths) {
+    if (fs.existsSync(possiblePath)) {
+        lessonImagesPath = possiblePath;
+        console.log('Found lessonImages at:', lessonImagesPath);
+        break;
+    }
+}
+
+if (!lessonImagesPath) {
+    lessonImagesPath = path.join(__dirname, '..', 'lessonImages');
+    console.log('Using default lessonImages path:', lessonImagesPath);
+}
 
 //serve static files from correct path
-const frontendPath = path.join(__dirname,'..','Frontend');;
 app.use(express.static(frontendPath));
-//serve lesson images from correct path
-app.use('/images',express.static(path.join(__dirname,'..','lessonImages')));
 
+//serve lesson images from correct path
+app.use('/images', express.static(lessonImagesPath));
 //404 handler for images
 app.use('/images',(req,res,next)=>{
     res.status(404).json({
@@ -343,13 +387,29 @@ app.put("/api/update-spaces", async(req,res)=>{
         });
     }
 });
-//serve login page as default 
+//serve login page as default with error handling
 app.get("/",(req,res)=>{
-    res.sendFile(path.join(frontendPath,"index.html"));
+    const indexPath = path.join(frontendPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).json({
+            success: false,
+            message: "Frontend files not found. Please check the deployment structure."
+        });
+    }
 });
 
 app.get("/main",(req,res)=>{
-    res.sendFile(path.join(frontendPath,"main.html"));
+    const mainPath = path.join(frontendPath, "main.html");
+    if (fs.existsSync(mainPath)) {
+        res.sendFile(mainPath);
+    } else {
+        res.status(404).json({
+            success: false,
+            message: "Main page not found"
+        });
+    }
 });
 //start the server and listen on specified port
 app.listen(PORT,()=>{

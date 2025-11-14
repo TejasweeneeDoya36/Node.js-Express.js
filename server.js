@@ -15,7 +15,7 @@ app.use((req,res,next)=>{
 });
 
 //static files middleware (serve images from lessonImages directory)
-app.use('/images',express.static(path.join(__dirname,'../Vue.js/lessonImages')));
+app.use('/images',express.static(path.join(__dirname,'../Frontend/lessonImages')));
 
 //404 handler for images
 app.use('/images',(req,res,next)=>{

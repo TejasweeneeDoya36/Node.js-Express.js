@@ -5,7 +5,7 @@ const path = require('path'); //path utilities for file and directory paths
 const cors = require('cors'); // cross-origin resource sharing middleware
 //initalise the app
 const app= express();
-const PORT=3000; //server port number
+const PORT=3000 || process.env.PORT; //server port number
 
 //logger middleware (logs request method, url, timestamp, and IP address)
 app.use((req,res,next)=>{
@@ -14,7 +14,13 @@ app.use((req,res,next)=>{
     next();
 });
 
-//static files middleware (serve images from lessonImages directory)
+//middleware setup
+app.use(express.json());
+app.use(cors());
+
+//serve static files from correct path
+app.use(express.static(path.join(__dirname,'..')));
+app.use(express.static(path.join(__dirname,'../Frontend')));
 app.use('/images',express.static(path.join(__dirname,'../lessonImages')));
 
 //404 handler for images
@@ -24,10 +30,7 @@ app.use('/images',(req,res,next)=>{
         message:"Image not found"
     });
 });
-//middleware setup
-app.use(express.json());
-app.use(cors());
-app.use(express.static(path.join(__dirname,'..')));
+
 //Database connection
 const uri = "mongodb+srv://td499_db_user:Vanshika1111@coursework.achdmcb.mongodb.net/";
 let db;
@@ -342,6 +345,10 @@ app.put("/api/update-spaces", async(req,res)=>{
 //serve login page as default 
 app.get("/",(req,res)=>{
     res.sendFile(path.join(__dirname,"../index.html"));
+});
+
+app.get("/main",(req,res)=>{
+    res.sendFile(path.join(__dirname,"../Frontend/main.html"));
 });
 //start the server and listen on specified port
 app.listen(PORT,()=>{

@@ -19,8 +19,9 @@ app.use(express.json());
 app.use(cors());
 
 //serve static files from correct path
-app.use(express.static(path.join(__dirname,'..')));
-app.use(express.static(path.join(__dirname,'../Frontend')));
+const frontendPath = path.join(__dirname,'../Frontend');;
+app.use(express.static(frontendPath));
+//serve lesson images from correct path
 app.use('/images',express.static(path.join(__dirname,'../lessonImages')));
 
 //404 handler for images
@@ -344,11 +345,11 @@ app.put("/api/update-spaces", async(req,res)=>{
 });
 //serve login page as default 
 app.get("/",(req,res)=>{
-    res.sendFile(path.join(__dirname,"../index.html"));
+    res.sendFile(path.join(frontendPath,"index.html"));
 });
 
 app.get("/main",(req,res)=>{
-    res.sendFile(path.join(__dirname,"../Frontend/main.html"));
+    res.sendFile(path.join(frontendPath,"main.html"));
 });
 //start the server and listen on specified port
 app.listen(PORT,()=>{

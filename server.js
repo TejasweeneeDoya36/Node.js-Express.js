@@ -5,7 +5,7 @@ const path = require('path'); //path utilities for file and directory paths
 const cors = require('cors'); // cross-origin resource sharing middleware
 //initalise the app
 const app= express();
-const PORT=3000 || process.env.PORT; //server port number
+const PORT= process.env.PORT ||3000 ; //server port number
 
 //logger middleware (logs request method, url, timestamp, and IP address)
 app.use((req,res,next)=>{
@@ -19,10 +19,10 @@ app.use(express.json());
 app.use(cors());
 
 //serve static files from correct path
-const frontendPath = path.join(__dirname,'../Frontend');;
+const frontendPath = path.join(__dirname,'..','Frontend');;
 app.use(express.static(frontendPath));
 //serve lesson images from correct path
-app.use('/images',express.static(path.join(__dirname,'../lessonImages')));
+app.use('/images',express.static(path.join(__dirname,'..','lessonImages')));
 
 //404 handler for images
 app.use('/images',(req,res,next)=>{

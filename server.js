@@ -15,7 +15,7 @@ app.use((req,res,next)=>{
 });
 
 //static files middleware (serve images from lessonImages directory)
-app.use('/images',express.static(path.join(__dirname,'../Frontend/lessonImages')));
+app.use('/images',express.static(path.join(__dirname,'../lessonImages')));
 
 //404 handler for images
 app.use('/images',(req,res,next)=>{
@@ -27,7 +27,7 @@ app.use('/images',(req,res,next)=>{
 //middleware setup
 app.use(express.json());
 app.use(cors());
-
+app.use(express.static(path.join(__dirname,'..')));
 //Database connection
 const uri = "mongodb+srv://td499_db_user:Vanshika1111@coursework.achdmcb.mongodb.net/";
 let db;
@@ -341,7 +341,7 @@ app.put("/api/update-spaces", async(req,res)=>{
 });
 //serve login page as default 
 app.get("/",(req,res)=>{
-    res.sendFile(path.join(__dirname,"../Frontend/index.html"));
+    res.sendFile(path.join(__dirname,"../index.html"));
 });
 //start the server and listen on specified port
 app.listen(PORT,()=>{

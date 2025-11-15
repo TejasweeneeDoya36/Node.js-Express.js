@@ -3,10 +3,9 @@ const express = require('express'); //framework to build APIs
 const {MongoClient,ObjectId} = require('mongodb'); //database
 const path = require('path'); //path utilities for file and directory paths
 const cors = require('cors'); // cross-origin resource sharing middleware
-const fs = require('fs'); //file system module
 //initalise the app
 const app= express();
-const PORT= process.env.PORT ||3000 ; //server port number
+const PORT=3000; //server port number
 
 //logger middleware (logs request method, url, timestamp, and IP address)
 app.use((req,res,next)=>{
@@ -15,60 +14,9 @@ app.use((req,res,next)=>{
     next();
 });
 
-//middleware setup
-app.use(express.json());
-app.use(cors());
-console.log("current directory:",__dirname);
-// Try multiple possible paths for static files
-const possiblePaths = [
-    path.join(__dirname, '..', 'Frontend'), // If running from Node.js-Express.js folder
-    path.join(__dirname, 'Frontend'),       // If running from root
-    path.join(process.cwd(), 'Frontend')    // Current working directory
-];
+//static files middleware (serve images from lessonImages directory)
+app.use('/images',express.static(path.join(__dirname,'../Frontend/lessonImages')));
 
-let frontendPath;
-let lessonImagesPath;
-
-// Find which path actually exists
-for (const possiblePath of possiblePaths) {
-    if (fs.existsSync(possiblePath)) {
-        frontendPath = possiblePath;
-        console.log('Found Frontend at:', frontendPath);
-        break;
-    }
-}
-
-// If no path found, use the most likely one
-if (!frontendPath) {
-    frontendPath = path.join(__dirname, '..', 'Frontend');
-    console.log('Using default Frontend path:', frontendPath);
-}
-
-// Similarly for lessonImages
-const possibleImagePaths = [
-    path.join(__dirname, '..', 'lessonImages'),
-    path.join(__dirname, 'lessonImages'),
-    path.join(process.cwd(), 'lessonImages')
-];
-
-for (const possiblePath of possibleImagePaths) {
-    if (fs.existsSync(possiblePath)) {
-        lessonImagesPath = possiblePath;
-        console.log('Found lessonImages at:', lessonImagesPath);
-        break;
-    }
-}
-
-if (!lessonImagesPath) {
-    lessonImagesPath = path.join(__dirname, '..', 'lessonImages');
-    console.log('Using default lessonImages path:', lessonImagesPath);
-}
-
-//serve static files from correct path
-app.use(express.static(frontendPath));
-
-//serve lesson images from correct path
-app.use('/images', express.static(lessonImagesPath));
 //404 handler for images
 app.use('/images',(req,res,next)=>{
     res.status(404).json({
@@ -76,6 +24,9 @@ app.use('/images',(req,res,next)=>{
         message:"Image not found"
     });
 });
+//middleware setup
+app.use(express.json());
+app.use(cors());
 
 //Database connection
 const uri = "mongodb+srv://td499_db_user:Vanshika1111@coursework.achdmcb.mongodb.net/";
@@ -388,29 +339,9 @@ app.put("/api/update-spaces", async(req,res)=>{
         });
     }
 });
-//serve login page as default with error handling
+//serve login page as default 
 app.get("/",(req,res)=>{
-    const indexPath = path.join(frontendPath, "index.html");
-    if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-    } else {
-        res.status(404).json({
-            success: false,
-            message: "Frontend files not found. Please check the deployment structure."
-        });
-    }
-});
-
-app.get("/main",(req,res)=>{
-    const mainPath = path.join(frontendPath, "main.html");
-    if (fs.existsSync(mainPath)) {
-        res.sendFile(mainPath);
-    } else {
-        res.status(404).json({
-            success: false,
-            message: "Main page not found"
-        });
-    }
+    res.sendFile(path.join(__dirname,"../Frontend/index.html"));
 });
 //start the server and listen on specified port
 app.listen(PORT,()=>{

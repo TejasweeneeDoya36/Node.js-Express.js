@@ -341,7 +341,10 @@ app.put("/api/update-spaces", async(req,res)=>{
 });
 //serve login page as default 
 app.get("/",(req,res)=>{
-    res.sendFile(path.join(__dirname,"../Frontend/index.html"));
+    res.json({
+        success:true,
+        message: "Backend server is running"
+    });
 });
 //start the server and listen on specified port
 app.listen(PORT,()=>{

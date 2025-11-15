@@ -11,11 +11,14 @@ const PORT= process.env.PORT || 3000; //server port number
 app.use(express.json());
 app.use(cors({
     origin:[
-        "https://tejasweeneedoya36.github.io/Frontend/"
+        "https://tejasweeneedoya36.github.io/Frontend/",
+        "https://node-js-express-js-goe7.onrender.com"
     ],
-    methods:["GET","POST","PUT"],
-    allowedHeaders:["Content-Type"]
+    methods:["GET","POST","PUT","DELETE"],
+    allowedHeaders:["Content-Type","Authorization"]
 }));
+
+app.options('*',cors()); //enable pre-flight requests for all routes
 
 //logger middleware (logs request method, url, timestamp, and IP address)
 app.use((req,res,next)=>{

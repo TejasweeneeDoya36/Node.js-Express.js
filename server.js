@@ -7,6 +7,16 @@ const cors = require('cors'); // cross-origin resource sharing middleware
 const app= express();
 const PORT= process.env.PORT || 3000; //server port number
 
+//middleware setup
+app.use(express.json());
+app.use(cors({
+    origin:[
+        "https://tejasweeneedoya36.github.io/Frontend/"
+    ],
+    methods:["GET","POST","PUT"],
+    allowedHeaders:["Content-Type"]
+}));
+
 //logger middleware (logs request method, url, timestamp, and IP address)
 app.use((req,res,next)=>{
     const timestamp = new Date().toISOString();
@@ -24,16 +34,6 @@ app.use('/images',(req,res,next)=>{
         message:"Image not found"
     });
 });
-
-//middleware setup
-app.use(express.json());
-app.use(cors({
-    origin:[
-        "https://tejasweeneedoya36.github.io/Frontend/"
-    ],
-    methods:["GET","POST","PUT"],
-    allowedHeaders:["Content-Type"]
-}));
 
 //Database connection
 const uri = "mongodb+srv://td499_db_user:Vanshika1111@coursework.achdmcb.mongodb.net/";

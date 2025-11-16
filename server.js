@@ -10,15 +10,24 @@ const PORT= process.env.PORT || 3000; //server port number
 //middleware setup
 app.use(express.json());
 app.use(cors({
-    origin:[
-        "https://tejasweeneedoya36.github.io",
-        "https://node-js-express-js-7li6.onrender.com"
-    ],
+
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            "https://tejasweeneedoya36.github.io/Frontend/",    
+            "https://node-js-express-js-7li6.onrender.com"
+        ];
+
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },    
     methods:["GET","POST","PUT","DELETE"],
     allowedHeaders:["Content-Type","Authorization"]
 }));
-
-app.options('*', cors()); // Enable preflight
+app.use(cors(corsOptions));
+app.options('/*', cors(corsOptions)); // Enable preflight
 
 
 //logger middleware (logs request method, url, timestamp, and IP address)

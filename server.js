@@ -274,7 +274,7 @@ app.post("/api/orders", async(req,res) =>{
                 subject: l.subject,
                 quantity: l.quantity
             })),
-            dateOfOrder: dateOfOrder || new Date().toISOString(),
+            dateOfOrder: dateOfOrder || new Date().toISOString(), //default to current date if not provided
             totalPrice: totalPrice
         }
 

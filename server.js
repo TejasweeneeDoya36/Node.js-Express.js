@@ -11,26 +11,7 @@ const PORT= process.env.PORT || 3000; //server port number
 app.use(express.json());
 
 //CORS configuration
-const allowedOrigins = [
-            "https://tejasweeneedoya36.github.io",    
-            "https://node-js-express-js-7li6.onrender.com"
-];
-app.use(cors({
-
-    origin: function (origin, callback) {
-
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },    
-    methods:["GET","POST","PUT","DELETE"],
-    allowedHeaders:["Content-Type","Authorization"]
-}));
-
-app.options('*', cors()); // Enable preflight
-
+app.use(cors());
 
 //logger middleware (logs request method, url, timestamp, and IP address)
 app.use((req,res,next)=>{
